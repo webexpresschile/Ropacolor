@@ -2,20 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ffffff;
+    --foreground: #000000;
+  }
+  html, body {
+    background: #ffffff;
+    color: #000000;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+  }
+  ::selection {
+    background: #000;
+    color: #fff;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+  }
+  .h-line {
+    @apply h-px w-full bg-line;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-none px-6 py-3 text-[12px] font-medium uppercase tracking-[0.18em] transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-ink text-white hover:bg-black;
+  }
+  .btn-outline {
+    @apply btn border border-ink text-ink hover:bg-ink hover:text-white;
+  }
+  .btn-ghost {
+    @apply btn text-ink hover:bg-muted;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border border-line bg-white px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-gray-600;
+  }
+  .link-underline {
+    @apply relative after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-0 after:bg-current after:transition-all hover:after:w-full;
+  }
+  .card {
+    @apply flex flex-col gap-3;
+  }
+  .input {
+    @apply h-11 w-full border-0 border-b border-line bg-transparent px-0 text-sm text-ink placeholder:text-gray-400 focus:border-ink focus:outline-none focus:ring-0;
+  }
+  .label {
+    @apply text-[11px] font-medium uppercase tracking-[0.18em] text-gray-500;
+  }
+  .section {
+    @apply py-16 sm:py-24;
+  }
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.28em] text-gray-500;
+  }
 }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #fff; }
+::-webkit-scrollbar-thumb { background: #d4d4d4; }
+::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
