@@ -5,4 +5,7 @@ export default defineConfig({
   datasource: {
     url: process.env.DATABASE_URL || "postgresql://ropacolor:ropacolor2024@localhost:5432/ropacolor",
   },
+  migrations: {
+    seed: "tsx prisma/seed.ts",
+  },
 });
