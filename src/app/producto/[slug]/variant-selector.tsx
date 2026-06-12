@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
-import { formatCLP } from "@/lib/utils";
+import { formatCLP, getSizeTypeLabel } from "@/lib/utils";
 
 type VariantData = {
   id: string;
@@ -21,6 +21,7 @@ type Props = {
   minWholesaleQty: number;
   variants: VariantData[];
   images: string[];
+  sizeType: string;
 };
 
 const COLOR_MAP: Record<string, string> = {
@@ -161,7 +162,7 @@ export function VariantSelector(props: Props) {
 
       {selectedColor && (
         <div>
-          <p className="label mb-3">Talla</p>
+          <p className="label mb-3">{getSizeTypeLabel(props.sizeType)}</p>
           <div className="flex flex-wrap gap-2">
             {sizesForColor.map((size) => {
               const variant = props.variants.find(

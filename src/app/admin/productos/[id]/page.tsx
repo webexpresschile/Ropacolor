@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { slugify } from "@/lib/utils";
+import { slugify, SIZE_TYPES, getSizesForType } from "@/lib/utils";
 import { VariantForm } from "./variant-form";
 
 type Props = { params: Promise<{ id: string }> };
@@ -38,6 +38,7 @@ export default async function AdminProductoEdit(props: Props) {
     const images = formData.get("images") as string;
     const metaTitle = formData.get("metaTitle") as string;
     const metaDescription = formData.get("metaDescription") as string;
+    const sizeType = formData.get("sizeType") as string || "letras";
 
     // Parse variant data from JSON
     let variantData: { color: string; sizes: string[]; stock: number; sku: string; image: string }[] = [];
@@ -50,7 +51,7 @@ export default async function AdminProductoEdit(props: Props) {
     const productData = {
       name, slug, shortDesc, longDesc, categoryId, brand, tags,
       priceNormal, priceWholesale, minWholesaleQty, active, featured,
-      images, metaTitle, metaDescription,
+      images, metaTitle, metaDescription, sizeType,
     };
 
     if (isNew) {
@@ -126,6 +127,14 @@ export default async function AdminProductoEdit(props: Props) {
             <input name="brand" defaultValue={product?.brand || "Ropa Unicolor"} className="input" />
           </div>
           <div>
+            <label className="label">Formato de Talla</label>
+            <select name="sizeType" defaultValue={product?.sizeType || "letras"} className="input">
+              {Object.entries(SIZE_TYPES).map(([key, val]) => (
+                <option key={key} value={key}>{val.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
             <label className="label">Precio normal (CLP)</label>
             <input name="priceNormal" type="number" defaultValue={product?.priceNormal || 0} className="input" required />
           </div>
@@ -165,6 +174,7 @@ export default async function AdminProductoEdit(props: Props) {
         </div>
 
         <VariantForm
+          availableSizes={getSizesForType(product?.sizeType || "letras")}
           initialVariants={
             product?.variants.map((v) => ({
               color: v.color,

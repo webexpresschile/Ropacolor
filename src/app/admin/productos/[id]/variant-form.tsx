@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 const COLORS = ["Negro", "Blanco", "Azul", "Gris", "Gris claro", "Gris oscuro", "Rojo", "Verde", "Beige", "Crema", "Mostaza", "Rosado", "Morado", "Café", "Vino", "Celeste", "Naranjo", "Oliva", "Lavanda"];
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
 type VariantData = {
   color: string;
@@ -15,8 +14,10 @@ type VariantData = {
 
 export function VariantForm({
   initialVariants,
+  availableSizes,
 }: {
   initialVariants?: { color: string; size: string; stock: number; sku: string; image: string | null }[];
+  availableSizes: string[];
 }) {
   const [variants, setVariants] = useState<VariantData[]>(() => {
     if (initialVariants && initialVariants.length > 0) {
@@ -32,12 +33,11 @@ export function VariantForm({
           };
         }
         grouped[v.color].sizes.add(v.size);
-        // Use the max stock across sizes as the default
         grouped[v.color].stock = Math.max(grouped[v.color].stock, v.stock);
       }
       return Object.entries(grouped).map(([color, data]) => ({
         color,
-        sizes: Array.from(data.sizes).sort((a, b) => SIZES.indexOf(a) - SIZES.indexOf(b)),
+        sizes: Array.from(data.sizes).sort((a, b) => availableSizes.indexOf(a) - availableSizes.indexOf(b)),
         stock: data.stock,
         sku: data.sku,
         image: data.image,
@@ -66,7 +66,7 @@ export function VariantForm({
     if (sizes.includes(size)) {
       updated[idx].sizes = sizes.filter((s) => s !== size);
     } else {
-      updated[idx].sizes = [...sizes, size].sort((a, b) => SIZES.indexOf(a) - SIZES.indexOf(b));
+      updated[idx].sizes = [...sizes, size].sort((a, b) => availableSizes.indexOf(a) - availableSizes.indexOf(b));
     }
     setVariants(updated);
   }
@@ -126,7 +126,7 @@ export function VariantForm({
             <div className="mb-3">
               <label className="text-[11px] uppercase tracking-wider text-gray-500">Tallas disponibles</label>
               <div className="mt-1 flex flex-wrap gap-2">
-                {SIZES.map((size) => (
+                {availableSizes.map((size) => (
                   <label
                     key={size}
                     className={`cursor-pointer rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${

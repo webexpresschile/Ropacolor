@@ -37,6 +37,7 @@ model Product {
   categoryId      String
   brand           String           @default("Ropa Unicolor")
   tags            String           @default("") // Comma-separated values
+  sizeType        String           @default("letras") // letras, numeros, cm
   priceNormal     Int              // Pesos chilenos (integer)
   priceWholesale  Int              // Precio mayorista
   minWholesaleQty Int              @default(3)

@@ -6,6 +6,23 @@ export function formatCLP(value: number): string {
   }).format(value);
 }
 
+export const SIZE_TYPES = {
+  letras: { label: "Letras (S-M-L-XL) — Adulto", sizes: ["XS", "S", "M", "L", "XL", "XXL"] },
+  numeros: { label: "Números (2-4-6-8-10-12) — Niño", sizes: ["2", "4", "6", "8", "10", "12"] },
+  cm: { label: "Centímetros (90-100-110-120-130) — Bebé", sizes: ["90", "100", "110", "120", "130"] },
+} as const;
+
+export type SizeType = keyof typeof SIZE_TYPES;
+
+export function getSizeTypeLabel(sizeType: string): string {
+  return SIZE_TYPES[sizeType as SizeType]?.label || "Talla";
+}
+
+export function getSizesForType(sizeType: string): string[] {
+  const found = SIZE_TYPES[sizeType as SizeType];
+  return found ? [...found.sizes] : [...SIZE_TYPES.letras.sizes];
+}
+
 export function cn(...classes: Array<string | false | null | undefined>): string {
   return classes.filter(Boolean).join(" ");
 }
