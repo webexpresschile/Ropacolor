@@ -68,7 +68,6 @@ export default async function ProductoPage(props: Props) {
                 stock: v.stock,
                 image: v.image,
               }))}
-              images={images}
             />
 
             {hasWholesale && (

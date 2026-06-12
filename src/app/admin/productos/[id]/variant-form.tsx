@@ -56,7 +56,7 @@ export function VariantForm({
 
   function updateVariant(idx: number, field: keyof VariantData, value: string | string[] | number) {
     const updated = [...variants];
-    (updated[idx] as any)[field] = value;
+    (updated[idx] as Record<string, string | string[] | number>)[field] = value;
     setVariants(updated);
   }
 
