@@ -90,6 +90,12 @@ export function VariantSelector(props: Props) {
     );
   }, [props.variants, selectedColor, selectedSize]);
 
+  const variantImageForColor = useMemo(() => {
+    if (!selectedColor) return null;
+    const v = props.variants.find((v) => v.color === selectedColor && v.image);
+    return v?.image || null;
+  }, [props.variants, selectedColor]);
+
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
     setSelectedSize("");
@@ -142,6 +148,16 @@ export function VariantSelector(props: Props) {
           })}
         </div>
       </div>
+
+      {selectedColor && variantImageForColor && (
+        <div className="aspect-[4/3] w-full max-w-[200px] overflow-hidden rounded border bg-muted">
+          <img
+            src={variantImageForColor}
+            alt={selectedColor}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
 
       {selectedColor && (
         <div>

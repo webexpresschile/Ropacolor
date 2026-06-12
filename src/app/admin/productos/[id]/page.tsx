@@ -5,9 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { slugify } from "@/lib/utils";
-
-const COLORS = ["Negro", "Blanco", "Azul", "Gris", "Gris claro", "Gris oscuro", "Rojo", "Verde", "Beige", "Crema", "Mostaza", "Rosado", "Morado", "Café", "Vino", "Celeste", "Naranjo", "Oliva", "Lavanda"];
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+import { VariantForm } from "./variant-form";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -41,33 +39,64 @@ export default async function AdminProductoEdit(props: Props) {
     const metaTitle = formData.get("metaTitle") as string;
     const metaDescription = formData.get("metaDescription") as string;
 
-    const data = {
+    // Parse variant data from JSON
+    let variantData: { color: string; sizes: string[]; stock: number; sku: string; image: string }[] = [];
+    try {
+      variantData = JSON.parse(formData.get("variantData") as string || "[]");
+    } catch {
+      variantData = [];
+    }
+
+    const productData = {
       name, slug, shortDesc, longDesc, categoryId, brand, tags,
       priceNormal, priceWholesale, minWholesaleQty, active, featured,
       images, metaTitle, metaDescription,
     };
 
     if (isNew) {
-      const created = await prisma.product.create({ data });
-      // Create variants from form
-      const colors = formData.getAll("variantColor") as string[];
-      const sizes = formData.getAll("variantSize") as string[];
-      const stocks = formData.getAll("variantStock") as string[];
-      const skus = formData.getAll("variantSku") as string[];
-      for (let idx = 0; idx < colors.length; idx++) {
-        await prisma.productVariant.create({
-          data: {
-            productId: created.id,
-            color: colors[idx],
-            size: sizes[idx],
-            stock: parseInt(stocks[idx]) || 0,
-            sku: skus[idx] || `${slug.toUpperCase()}-${colors[idx].slice(0, 3).toUpperCase()}-${sizes[idx]}`,
-          },
-        });
+      const created = await prisma.product.create({ data: productData });
+
+      // Expand color variants into individual size variants
+      for (const v of variantData) {
+        if (!v.color || v.sizes.length === 0) continue;
+        const skuBase = v.sku || `${slug.toUpperCase()}-${v.color.slice(0, 3).toUpperCase()}`;
+        for (const size of v.sizes) {
+          await prisma.productVariant.create({
+            data: {
+              productId: created.id,
+              color: v.color,
+              size,
+              stock: v.stock,
+              sku: `${skuBase}-${size}`,
+              image: v.image || null,
+            },
+          });
+        }
       }
     } else {
-      await prisma.product.update({ where: { id }, data });
+      await prisma.product.update({ where: { id }, data: productData });
+
+      // Replace all variants: delete old, create new
+      await prisma.productVariant.deleteMany({ where: { productId: id } });
+
+      for (const v of variantData) {
+        if (!v.color || v.sizes.length === 0) continue;
+        const skuBase = v.sku || `${slug.toUpperCase()}-${v.color.slice(0, 3).toUpperCase()}`;
+        for (const size of v.sizes) {
+          await prisma.productVariant.create({
+            data: {
+              productId: id,
+              color: v.color,
+              size,
+              stock: v.stock,
+              sku: `${skuBase}-${size}`,
+              image: v.image || null,
+            },
+          });
+        }
+      }
     }
+
     revalidatePath("/admin/productos");
     redirect("/admin/productos");
   }
@@ -131,35 +160,21 @@ export default async function AdminProductoEdit(props: Props) {
           <input name="tags" defaultValue={product?.tags || ""} className="input" />
         </div>
         <div>
-          <label className="label">Imágenes <span className="text-gray-400 normal-case">(URLs separadas por coma)</span></label>
+          <label className="label">Imágenes generales <span className="text-gray-400 normal-case">(URLs separadas por coma)</span></label>
           <input name="images" defaultValue={product?.images || ""} className="input" />
         </div>
 
-        <div className="border border-line p-5">
-          <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">Variantes</h3>
-          <div id="variants-container">
-            {product?.variants.map((v) => (
-              <div key={v.id} className="grid grid-cols-4 gap-3 mb-3">
-                <select name="variantColor" defaultValue={v.color} className="input">
-                  {COLORS.map((c) => (<option key={c} value={c}>{c}</option>))}
-                </select>
-                <select name="variantSize" defaultValue={v.size} className="input">
-                  {SIZES.map((s) => (<option key={s} value={s}>{s}</option>))}
-                </select>
-                <input name="variantStock" type="number" defaultValue={v.stock} className="input" placeholder="Stock" />
-                <input name="variantSku" defaultValue={v.sku} className="input font-mono text-xs" placeholder="SKU" />
-              </div>
-            ))}
-            {(!product || product.variants.length === 0) && (
-              <div className="grid grid-cols-4 gap-3 mb-3">
-                <select name="variantColor" className="input"><option value="">Color</option>{COLORS.map((c) => (<option key={c} value={c}>{c}</option>))}</select>
-                <select name="variantSize" className="input"><option value="">Talla</option>{SIZES.map((s) => (<option key={s} value={s}>{s}</option>))}</select>
-                <input name="variantStock" type="number" className="input" placeholder="Stock" />
-                <input name="variantSku" className="input font-mono text-xs" placeholder="SKU" />
-              </div>
-            )}
-          </div>
-        </div>
+        <VariantForm
+          initialVariants={
+            product?.variants.map((v) => ({
+              color: v.color,
+              size: v.size,
+              stock: v.stock,
+              sku: v.sku,
+              image: v.image,
+            })) || []
+          }
+        />
 
         <div>
           <label className="label">Meta título</label>

@@ -29,6 +29,12 @@ export default async function ProductoPage(props: Props) {
   if (!product) notFound();
 
   const images = splitImages(product.images);
+  // Collect unique variant images to show in gallery
+  const variantImages = product.variants
+    .map((v) => v.image)
+    .filter((img): img is string => !!img);
+  const allImages = [...new Set([...images, ...variantImages])];
+
   const hasWholesale =
     product.priceWholesale > 0 &&
     product.priceWholesale < product.priceNormal;
@@ -38,7 +44,7 @@ export default async function ProductoPage(props: Props) {
       <div className="container-x">
         <div className="flex flex-col gap-10 lg:flex-row">
           <div className="w-full lg:w-3/5">
-            <ImageGallery images={images} name={product.name} />
+            <ImageGallery images={allImages} name={product.name} />
           </div>
 
           <div className="flex w-full flex-col gap-6 lg:w-2/5">
@@ -54,6 +60,7 @@ export default async function ProductoPage(props: Props) {
               priceNormal={product.priceNormal}
               priceWholesale={product.priceWholesale}
               minWholesaleQty={product.minWholesaleQty}
+              images={images}
               variants={product.variants.map((v) => ({
                 id: v.id,
                 color: v.color,
